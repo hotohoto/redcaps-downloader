@@ -39,5 +39,6 @@ MANIFEST
 venv/
 ENV/
 
+annotations
 datasets/
 credentials.json
