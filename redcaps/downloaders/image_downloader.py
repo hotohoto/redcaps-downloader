@@ -18,13 +18,13 @@ class ImageDownloader(object):
     Flickr (``farm.static.flickr.com``).
 
     Args:
-        longer_resize: Resize the longer edge of image to this size before
-            saving to disk (preserve aspect ratio). Set to -1 to avoid any
-            resizing. Defaults to 512.
+        crop_resize: Resize the shorter edge of image to this size, and crop
+        the longer edge to be this size before saving to disk (preserve aspect
+        ratio). Set to -1 to avoid any resizing. Defaults to 512.
     """
 
-    def __init__(self, longer_resize: int = 512):
-        self.longer_resize = longer_resize
+    def __init__(self, crop_resize: int = 512):
+        self.crop_resize = crop_resize
 
     def download(self, url: str, save_to: str) -> bool:
         r"""
@@ -53,16 +53,27 @@ class ImageDownloader(object):
 
             # Resize image to longest max size while preserving aspect ratio if
             # longest max size is provided (not -1), and image is bigger.
-            if self.longer_resize > 0:
+            if self.crop_resize > 0:
                 image_width, image_height = pil_image.size
 
-                scale = self.longer_resize / float(max(image_width, image_height))
+                scale = self.crop_resize / float(min(image_width, image_height))
 
-                if scale != 1.0:
-                    new_width, new_height = tuple(
-                        int(round(d * scale)) for d in (image_width, image_height)
-                    )
-                    pil_image = pil_image.resize((new_width, new_height))
+                new_width, new_height = tuple(
+                    int(round(d * scale)) for d in (image_width, image_height)
+                )
+                if new_width >= new_height:
+                    new_left = int((new_width - self.crop_resize) / 2)
+                    new_top = 0
+                    new_right = new_left + self.crop_resize
+                    new_bottom = self.crop_resize
+                else:
+                    new_left = 0
+                    new_top = int((new_height - self.crop_resize) / 2)
+                    new_right = self.crop_resize
+                    new_bottom = new_top + self.crop_resize
+                pil_image = pil_image.resize((new_width, new_height)).crop(
+                    (new_left, new_top, new_right, new_bottom)
+                )
 
             # Save the downloaded image to disk.
             os.makedirs(os.path.dirname(save_to), exist_ok=True)

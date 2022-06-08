@@ -122,8 +122,8 @@ def download_anns(
 )
 @click.option(
     "-z", "--resize", type=int, default=512,
-    help="""Resize longer edge of image, preserving aspect ratio. Set to -1 to
-    prevent resizing.""",
+    help="""Resize shorter edge of image, and crop the longer edge to be the
+    same. Set to -1 to prevent resizing.""",
 )
 @click.option(
     "-u", "--update-annotations", is_flag=True,
@@ -143,7 +143,7 @@ def download_imgs(
 ):
     # Load annotations to download images. Image URL available as "url".
     ANNOTATIONS: Dict[str, Any] = json.load(open(annotations_filepath))
-    image_downloader = ImageDownloader(longer_resize=resize)
+    image_downloader = ImageDownloader(crop_resize=resize)
 
     # Parallelize image downloads.
     with mp.Pool(processes=workers) as p:
