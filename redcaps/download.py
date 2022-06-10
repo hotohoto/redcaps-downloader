@@ -6,6 +6,7 @@
 import json
 import multiprocessing as mp
 import os
+from pathlib import Path
 import time
 from calendar import Calendar
 from datetime import datetime
@@ -153,6 +154,11 @@ def download_imgs(
             image_savepath = os.path.join(
                 save_to, ann["subreddit"], f"{ann['image_id']}.jpg"
             )
+            _image_savepath = Path(image_savepath)
+
+            if _image_savepath.exists() and _image_savepath.stat().st_size > 0:
+                continue
+
             worker_args.append((ann["url"], image_savepath, image_downloader))
 
         # Collect download status of images in these annotations (True/False).
